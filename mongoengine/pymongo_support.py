@@ -31,7 +31,11 @@ def count_documents(
     # count_documents appeared in pymongo 3.7
     if IS_PYMONGO_GTE_37:
         try:
-            return collection.count_documents(filter=filter, **kwargs)
+            # Use estimated_document_count when possible (no filter specified)
+            if filter or kwargs:
+                return collection.count_documents(filter=filter, **kwargs)
+            else:
+                return collection.estimated_document_count()
         except OperationFailure:
             # OperationFailure - accounts for some operators that used to work
             # with .count but are no longer working with count_documents (i.e $geoNear, $near, and $nearSphere)
